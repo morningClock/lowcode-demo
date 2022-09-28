@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画布移动缩放</title>
+  <style>
+    #viewBoxPreview {
+      cursor: grab;
+    }
+
+    #viewBoxPreview.active {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <div>
+      <span>x</span>
+      <label for="viewboxX">0</label>
+      <input type="range" id="viewboxX" data-type="0" min="-500" max="500" step="1" value="0" />
+      <span>y</span>
+      <label for="viewboxY">0</label>
+      <input type="range" id="viewboxY" data-type="1" min="-500" max="500" step="1" value="0" />
+      <span>width</span>
+      <label for="viewboxWidth">500</label>
+      <input type="range" id="viewboxWidth" data-type="2" min="0" max="1000" step="1" value="500" />
+      <span>height</span>
+      <label for="viewboxHeight">500</label>
+      <input type="range" id="viewboxHeight" data-type="3" min="0" max="1000" step="1" value="500" />
+      <span>等比缩放</span>
+      <label for="viewboxScale">0</label>
+      <input type="range" id="viewboxScale" min="0" max="100" step="1" value="0" />
+    </div>
+    <!-- viewbox 相当于一个放大镜效果, 设置一个容器展示100 * 100显示区域， 然后再将viewbox缩放至整个svg容器大小，达到缩放效果 -->
+    <!-- viewbox缩放 -->
+    <svg id="viewBoxPreview" width="500" height="500" viewBox="0,0,500,500" style="background-color: pink;">
+      <rect width="50" height="50"></rect>
+    </svg>
+
+  </div>
+
+  <script>
+    // 画布
+    const viewBoxPreview = document.getElementById('viewBoxPreview');
+    // 控杆
+    const viewboxWidth = document.getElementById('viewboxWidth');
+    const viewboxHeight = document.getElementById('viewboxHeight');
+    const viewboxX = document.getElementById('viewboxX');
+    const viewboxY = document.getElementById('viewboxY');
+    const viewboxScale = document.getElementById('viewboxScale');
+
+    let currentValue = viewBoxPreview.getAttribute("viewBox");
+
+    const boxArr = [viewboxX, viewboxY, viewboxWidth, viewboxHeight]
+
+    boxArr.forEach((target) => {
+      target.onchange = function (e) {
+        const setTypeIndex = e.target.dataset.type;
+        const prepareValueArr = currentValue.split(",")
+        prepareValueArr[setTypeIndex] = e.target.value
+        currentValue = prepareValueArr.join(",")
+
+        boxArr[setTypeIndex].previousSibling.previousSibling.innerText = prepareValueArr[setTypeIndex]
+        viewBoxPreview.setAttribute("viewBox", currentValue)
+      }
+    })
+
+    viewboxScale.onchange = function (e) {
+      const w = currentValue.split(",")[2]
+      const h = currentValue.split(",")[3]
+      const scale = 1 + e.target.value / 100 //缩放比例
+
+      const prepareValueArr = currentValue.split(",")
+      prepareValueArr[2] = w / scale
+      prepareValueArr[3] = h / scale
+      viewBoxPreview.setAttribute("viewBox", prepareValueArr.join(','))
+
+      viewboxScale.previousSibling.previousSibling.innerText = ((scale - 1) * 100).toFixed(0) + "%"
+    }
+
+
+    // 画布操作
+    // ===================拖拽===============================
+    // 原坐标
+    let ox = 0;
+    let oy = 0;
+    let startX = 0;
+    let startY = 0;
+
+    viewBoxPreview.addEventListener('mousedown', startDrag)
+
+    // 开始拖拽
+    function startDrag(e) {
+      viewBoxPreview.classList.add('active')
+      ox = e.offsetX
+      oy = e.offsetY
+      const prepareValueArr = currentValue.split(",")
+      // 记录起始位置
+      startX = Number(prepareValueArr[0])
+      startY = Number(prepareValueArr[1])
+      window.addEventListener('mousemove', draging)
+      window.addEventListener('mouseup', dispose)
+    }
+    // 拖拽
+    function draging(e) {
+      // 改变viewbox位置
+      const prepareValueArr = currentValue.split(",")
+      // 鼠标偏移距离
+      dx = e.offsetX - ox
+      dy = e.offsetY - oy
+      prepareValueArr[0] = startX - dx
+      prepareValueArr[1] = startY - dy
+      currentValue = prepareValueArr.join(",")
+
+      boxArr[0].previousSibling.previousSibling.innerText = prepareValueArr[0]
+      boxArr[1].previousSibling.previousSibling.innerText = prepareValueArr[1]
+      viewBoxPreview.setAttribute("viewBox", currentValue)
+      currentValue = prepareValueArr.join(',')
+    }
+    // 释放
+    function dispose(e) {
+      viewBoxPreview.classList.remove('active')
+      window.removeEventListener('mousemove', draging)
+      window.removeEventListener('mouseup', dispose)
+    }
+
+
+    // ===========================缩放===========================
+    viewBoxPreview.addEventListener('wheel', scaleViewBox)
+
+    let scale = 1;  // 当前缩放
+    let scaleMax = 10; // 缩放倍数
+    // 缩放基准
+    let oWidth = 500;
+    let oHeight = 500;
+
+    function scaleViewBox(e) {
+      e.preventDefault();
+      // 必须配合ctrl才触发
+      if (!e.ctrlKey) return;
+
+      // 1向上， -1向下
+      const direction = e.wheelDelta > 0 ? 1 : -1
+
+      // 缩放画布
+      scale += (5 * direction) / 100 //缩放比例
+      console.log(scale)
+
+      const prepareValueArr = currentValue.split(",")
+      prepareValueArr[2] = (oWidth / scale).toFixed(0)
+      prepareValueArr[3] = (oHeight / scale).toFixed(0)
+      viewBoxPreview.setAttribute("viewBox", prepareValueArr.join(','))
+      currentValue = prepareValueArr.join(',')
+
+      viewboxScale.previousSibling.previousSibling.innerText = ((scale - 1) * 100).toFixed(0) + "%"
+    }
+
+  </script>
+</body>
+
+</html>

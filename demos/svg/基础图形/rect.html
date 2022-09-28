@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>矩形</title>
+</head>
+
+<body>
+  <!-- 
+    svg标签
+    常用转有属性
+    version                        ：SVG 文档遵循规范，有效值有1.0/1.1
+    baseProfile                    ：正确渲染内容所需要的最小的 SVG 语言概述, 有效值有none | full| basic| tiny
+    x                              ：水平坐标
+    y                              ：垂直坐标
+    width                          ：宽度
+    height                         ：高度
+    viewBox                        ：指定一个给定的一组图形伸展以适应特定的容器元素，设置（min-x, min-y, width, height）,不允许宽度和高度为负值，0 则禁用元素的呈现。
+    preserveAspectRatio            ：是否强制进行统一缩放。
+  -->
+  <div>
+    <svg width="500" height="500">
+      <!-- 
+        常用专有属性：
+        width: 宽度 
+        height: 高度
+        x: 水平坐标
+        y: 垂直坐标
+        rx: radius x 水平轴向的圆角半径尺寸
+        ry: radius y 垂直轴向的圆角半径尺寸
+      -->
+      <rect width="50" height="50"></rect>
+    </svg>
+  </div>
+
+  <div>
+
+    <!-- viewbox 相当于一个放大镜效果, 设置一个容器展示100 * 100显示区域， 然后再将viewbox缩放至整个svg容器大小，达到缩放效果 -->
+    <!-- viewbox缩放 -->
+    <svg id="viewBoxPreview" width="500" height="500" viewBox="0,0,500,500" style="background-color: pink;">
+      <!-- 
+      常用专有属性：
+      width: 宽度 
+      height: 高度
+      x: 水平坐标
+      y: 垂直坐标
+      rx: radius x 水平轴向的圆角半径尺寸
+      ry: radius y 垂直轴向的圆角半径尺寸
+    -->
+      <rect width="50" height="50"></rect>
+    </svg>
+    <div>
+      <label for="viewboxX">x</label>
+      <input type="range" id="viewboxX" data-type="0" min="-500" max="500" step="1" value="0" />
+      <label for="viewboxY">y</label>
+      <input type="range" id="viewboxY" data-type="1" min="-500" max="500" step="1" value="0" />
+      <label for="viewboxWidth">width</label>
+      <input type="range" id="viewboxWidth" data-type="2" min="0" max="1000" step="1" value="500" />
+      <label for="viewboxHeight">height</label>
+      <input type="range" id="viewboxHeight" data-type="3" min="0" max="1000" step="1" value="500" />
+      <label for="viewboxScale">等比缩放</label>
+      <input type="range" id="viewboxScale" min="0" max="100" step="1" value="0" />
+    </div>
+  </div>
+
+  <script>
+    const viewBoxPreview = document.getElementById('viewBoxPreview');
+    const viewboxWidth = document.getElementById('viewboxWidth');
+    const viewboxHeight = document.getElementById('viewboxHeight');
+    const viewboxX = document.getElementById('viewboxX');
+    const viewboxY = document.getElementById('viewboxY');
+    const viewboxScale = document.getElementById('viewboxScale');
+
+    let currentValue = viewBoxPreview.getAttribute("viewBox");
+
+    [viewboxX, viewboxY, viewboxWidth, viewboxHeight].forEach((target) => {
+      target.onchange = function (e) {
+        const setTypeIndex = e.target.dataset.type;
+        const prepareValueArr = currentValue.split(",")
+        prepareValueArr[setTypeIndex] = e.target.value
+        currentValue = prepareValueArr.join(",")
+        viewBoxPreview.setAttribute("viewBox", currentValue)
+      }
+    })
+
+    viewboxScale.onchange = function (e) {
+      const w = currentValue.split(",")[2]
+      const h = currentValue.split(",")[3]
+      const scale = 1 + e.target.value / 100 //缩放比例
+      const prepareValueArr = currentValue.split(",")
+      prepareValueArr[2] = w / scale
+      prepareValueArr[3] = h / scale
+      viewBoxPreview.setAttribute("viewBox", prepareValueArr.join(','))
+    }
+
+
+    // viewBoxPreview.setAttribute('viewBox')
+  </script>
+</body>
+
+</html>
